@@ -1,56 +1,38 @@
-/*********
-Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-hc-sr04-ultrasonic-arduino/
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*********/
-
 #include <Arduino.h>
 
-const int trigPin = 5;
-const int echoPin = 18;
+float travel_distance_in_cm(long);
 
-//define sound speed in cm/uS
-#define SOUND_SPEED 0.034
-#define CM_TO_INCH 0.393701
+constexpr int trigger = 5;
+constexpr int echo = 18;
 
-long duration;
-float distanceCm;
-float distanceInch;
+void setup()
+{
+	Serial.begin(9600);
 
-void setup() {
-	Serial.begin(115200); // Starts the serial communication
-	pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
-	pinMode(echoPin, INPUT); // Sets the echoPin as an Input
+	pinMode(trigger, OUTPUT);
+	pinMode(echo, INPUT);
 }
 
-void loop() {
-	// Clears the trigPin
-	digitalWrite(trigPin, LOW);
-	delayMicroseconds(2);
-	// Sets the trigPin on HIGH state for 10 micro seconds
-	digitalWrite(trigPin, HIGH);
+void loop()
+{
+	digitalWrite(trigger, HIGH);
 	delayMicroseconds(10);
-	digitalWrite(trigPin, LOW);
+	digitalWrite(trigger, LOW);
 
-	// Reads the echoPin, returns the sound wave travel time in microseconds
-	duration = pulseIn(echoPin, HIGH);
+	const long travel_time = pulseIn(echo, HIGH) /* us */;
+	const float distance = travel_distance_in_cm(travel_time) / 2;
 
-	// Calculate the distance
-	distanceCm = duration * SOUND_SPEED/2;
-
-	// Convert to inches
-	distanceInch = distanceCm * CM_TO_INCH;
-
-	// Prints the distance in the Serial Monitor
-	Serial.print("Distance (cm): ");
-	Serial.println(distanceCm);
-	Serial.print("Distance (inch): ");
-	Serial.println(distanceInch);
+	Serial.print("Distance: ");
+	Serial.print(distance);
+	Serial.println(" cm");
 
 	delay(1000);
+}
+
+float travel_distance_in_cm(const long travel_time_us)
+{
+	// Sound speed = 343 m/s = 34300 cm/s = 0.0343 cm/us
+	constexpr float sound_speed = 0.0343 /* cm/us */;
+	const float travel_distance = travel_time_us * sound_speed;
+	return travel_distance;
 }
